@@ -1,4 +1,19 @@
 <resources>
     <string name="app_name">Simple Bluetooth Terminal</string>
     <string name="devices">Bluetooth Devices</string>
+    <string name="ck_product_mode">CkProduct</string>
+    <string name="set_product_mode">SetProduct</string>
+    <string name="clean_product_mode">ClnProduct</string>
+    <string name="get_cali_data">GetCaliData</string>
+    <string name="get_raw_data">GetRawData</string>
+    <string name="get_inear_status">GetInearSta</string>
+    <string name="logon">LOGON</string>
+    <string name="logoff">LOGOFF</string>
+    <string name="outcali">OutCali</string>
+    <string name="incali">InCali</string>
+    <string name="anc_high">ANCH</string>
+    <string name="anc_low">ANCL</string>
+    <string name="anc_wind">ANCW</string>
+    <string name="sw_left_channel">LCHL</string>
+    <string name="sw_right_channel">RCHL</string>
 </resources>

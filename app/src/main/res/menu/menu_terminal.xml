@@ -15,4 +15,10 @@
         android:title="HEX Mode"
         android:checkable="true"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/autoscroll"
+        android:title="AutoScroll"
+        android:checkable="true"
+        app:showAsAction="never" />
 </menu>

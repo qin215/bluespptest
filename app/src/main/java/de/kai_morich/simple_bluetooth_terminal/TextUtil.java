@@ -19,6 +19,19 @@ final class TextUtil {
     final static String newline_crlf = "\r\n";
     final static String newline_lf = "\n";
 
+    static boolean isAllAscii(byte[] str) {
+        boolean isASCII = true;
+        for (int i = 0; i < str.length; i++) {
+            int c = str[i];
+            if (c > 0x7F) {
+                isASCII = false;
+                break;
+            }
+        }
+
+        return isASCII;
+    }
+
     static byte[] fromHexString(final CharSequence s) {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         byte b = 0;
@@ -67,6 +80,27 @@ final class TextUtil {
             else        c += '0';
             sb.append((char)c);
         }
+    }
+
+    public static String shortToHex(int v) {
+        String hex = Integer.toHexString(v & 0xFFFF);
+        int len = hex.length();
+
+        len = 4 - len;
+
+        for (int i = 0; i < len; i++) {
+            hex = "0" + hex;
+        }
+        hex = "0X" + hex;
+        return hex;
+    }
+
+    public static String byteToHex(byte b) {
+        String hex = Integer.toHexString(b & 0xFF);
+        if (hex.length() < 2) {
+            hex = "0" + hex;
+        }
+        return hex;
     }
 
     /**
