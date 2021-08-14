@@ -62,6 +62,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private String newline = TextUtil.newline_crlf;
     private boolean autoScroll = true;
 
+    private int calibrating_status;
+
 
     class psensor_cali_data
     {
@@ -611,18 +613,10 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
                         case Constants.PSENSOR_RACE_CAL_CT: {
                             if (result == 1) {
-                                Toast.makeText(service, "out ear calibrated ok", Toast.LENGTH_SHORT).show();
-                            }
-                            else
-                            {
-                                Toast.makeText(service, "out ear calibrated failed.", Toast.LENGTH_LONG).show();
-                            }
+                              //  Toast.makeText(service, "out ear calibrated ok", Toast.LENGTH_SHORT).show();
 
-                            break;
-                        }
+                                calibrating_status = Constants.PSENSOR_RACE_CAL_CT;
 
-                        case Constants.PSENSOR_RACE_CAL_G2: {
-                            if (result == 1) {
                                 Toast.makeText(service, "out ear calibrate cmd ok, polling calibrated status", Toast.LENGTH_SHORT).show();
                                 new Handler().postDelayed(new Runnable() {
                                     public void run() {
@@ -633,19 +627,54 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                             }
                             else
                             {
+                                Toast.makeText(service, "out ear calibrated failed.", Toast.LENGTH_LONG).show();
+                                calibrating_status = 0;
+                            }
+
+                            break;
+                        }
+
+                        case Constants.PSENSOR_RACE_CAL_G2: {
+                            if (result == 1) {
+                                Toast.makeText(service, "in ear calibrate cmd ok, polling calibrated status", Toast.LENGTH_SHORT).show();
+                                calibrating_status = Constants.PSENSOR_RACE_CAL_G2;
+                                new Handler().postDelayed(new Runnable() {
+                                    public void run() {
+                                        byte[] cmd = consCommandByte(Constants.PSENSOR_QUERY_CALI_STATUS);
+                                        sendBinaryData(cmd);
+                                    }
+                                }, 1000);
+                            }
+                            else
+                            {
                                 Toast.makeText(service, "in ear calibrated failed.", Toast.LENGTH_LONG).show();
+                                calibrating_status = 0;
                             }
                             break;
                         }
 
                         case Constants.PSENSOR_QUERY_CALI_STATUS: {
+                            String strAction;
+                            if (calibrating_status == Constants.PSENSOR_RACE_CAL_G2)
+                            {
+                                strAction = "in ear ";
+                            }
+                            else if (calibrating_status == Constants.PSENSOR_RACE_CAL_CT)
+                            {
+                                strAction = "out ear ";
+                            }
+                            else {
+                                strAction = "";
+                            }
+
                             if (result == Constants.PSENSOR_QUERY_CALI_FAIL) {
-                                Toast.makeText(service, "out ear calibrated value failed.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(service,  strAction + "calibrated value failed.", Toast.LENGTH_LONG).show();
+                                calibrating_status = 0;
                             }
                             else if (result == Constants.PSENSOR_QUERY_CALI_SUCCESS) {
-                                Toast.makeText(service, "out ear calibrated value success.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(service,  strAction + "calibrated value success.", Toast.LENGTH_LONG).show();
+                                calibrating_status = 0;
                             } else {
-                                //Toast.makeText(service, "out ear calibrated value processing.", Toast.LENGTH_LONG).show();
                                 new Handler().postDelayed(new Runnable() {
                                     public void run() {
                                         byte[] cmd = consCommandByte(Constants.PSENSOR_QUERY_CALI_STATUS);
