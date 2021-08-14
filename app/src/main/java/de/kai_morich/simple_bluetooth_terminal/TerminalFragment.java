@@ -9,6 +9,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,6 +20,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,6 +34,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 
 public class TerminalFragment extends Fragment implements ServiceConnection, SerialListener {
 
@@ -238,6 +251,35 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             byte[] cmd = consCommandByte(Constants.PSENSOR_CHANNEL_RIGHT);
             sendBinaryData(cmd);
         });
+
+        FloatingActionButton mFAButton = (FloatingActionButton) view.findViewById(R.id.fab_save_log_id);
+        mFAButton.setCompatElevation(5.0F); //设置FloatingActionButton的高度值，产生相应的阴影效果
+        mFAButton.setRippleColor(Color.parseColor("#FFFFFFFF")); //设置涟漪效果颜色
+        //
+        mFAButton.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FF13C6DA"))); //设置Fab的背景颜色
+        //mFAButton.setVisibility(View.INVISIBLE); //设置Fab的可见性
+        mFAButton.setSize(FloatingActionButton.SIZE_AUTO); // 设置Fab的大小
+
+        /* 为FloatingActionButton设置点击事件 */
+        mFAButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getActivity(), "begin to save log", Toast.LENGTH_SHORT).show();
+                saveLogFile();
+//                mFAButton.hide(new FloatingActionButton.OnVisibilityChangedListener() {
+//                    @Override
+//                    public void onHidden(FloatingActionButton fab) {
+//                        super.onHidden(fab);
+//                        Toast.makeText(getActivity(), "OnShown", Toast.LENGTH_SHORT).show();
+//                        Log.d(TAG, "Hide");
+//                        Log.d(TAG, "onHidden: " + mFAButton.getRippleColor());
+//                        Log.d(TAG, "onHidden: " + mFAButton.getCompatElevation());
+//                        //Log.d(TAG, "onHidden: " + mFAButton.getElevation());
+//                    }
+//                });
+            }
+        });
+
 
 
         return view;
@@ -755,5 +797,67 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
         return null;
     }
+
+
+    public String getCurrentTimestamp() {
+        Calendar calendar = Calendar.getInstance(); // 如果不设置时间，则默认为当前时间
+        calendar.setTime(new Date()); // 将系统当前时间赋值给 Calendar 对象
+        System.out.println("现在时刻：" + calendar.getTime()); // 获取当前时间
+        int year = calendar.get(Calendar.YEAR); // 获取当前年份
+        System.out.println("现在是" + year + "年");
+        int month = calendar.get(Calendar.MONTH) + 1; // 获取当前月份（月份从 0 开始，所以加 1）
+        System.out.print(month + "月");
+        int day = calendar.get(Calendar.DATE); // 获取日
+        System.out.print(day + "日");
+        int hour = calendar.get(Calendar.HOUR_OF_DAY); // 获取当前小时数（24 小时制）
+        System.out.print(hour + "时");
+        int minute = calendar.get(Calendar.MINUTE); // 获取当前分钟
+        System.out.print(minute + "分");
+        int second = calendar.get(Calendar.SECOND); // 获取当前秒数
+        System.out.print(second + "秒");
+
+        String s = String.format("%d-%d-%d_%d-%d-%d", year, month, day, hour, minute, second);
+
+        Log.d("Terminal", "timestamp = " + s);
+
+        return s;
+    }
+
+
+    // save the file into filesystem
+    public boolean saveLogFile()
+    {
+        try
+        {
+            // Creates a trace file in the primary external storage space of the
+            // current application.
+            // If the file does not exists, it is created.
+            String filename = "logFile_" + getCurrentTimestamp() + ".txt";
+            Log.d("Terminal", "filename = " + filename);
+            File traceFile = new File(((Context)getActivity()).getExternalFilesDir(null), filename);
+            if (!traceFile.exists())
+                traceFile.createNewFile();
+            // Adds a line to the trace file
+            BufferedWriter writer = new BufferedWriter(new FileWriter(traceFile, true /*append*/));
+            writer.write(receiveText.getText().toString());
+            writer.close();
+            // Refresh the data so it can seen when the device is plugged in a
+            // computer. You may have to unplug and replug the device to see the
+            // latest changes. This is not necessary if the user should not modify
+            // the files.
+            MediaScannerConnection.scanFile((Context)(getActivity()),
+                    new String[] { traceFile.toString() },
+                    null,
+                    null);
+        }
+        catch (IOException e)
+        {
+            Log.e("Terminal", "Unable to write to the TraceFile.txt file.");
+            return false;
+        }
+
+        return true;
+    }
+
 
 }
